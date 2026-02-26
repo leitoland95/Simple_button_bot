@@ -20,7 +20,7 @@ def button(update, context):
     query = update.callback_query
     query.answer()
     if query.data == "hola":
-        query.edit_message_text(text="Hola mundo")
+        query.edit_message_text(text="Hola mi vasto mundo")
 
 def run_bot():
     updater = Updater(TOKEN, use_context=True)
