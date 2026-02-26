@@ -1,8 +1,8 @@
 import os
+import threading
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import threading
 
 TOKEN = os.getenv("TOKEN")
 
@@ -27,15 +27,17 @@ def run_bot():
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CallbackQueryHandler(button))
+    # start_polling ya mantiene el bot activo en segundo plano
     updater.start_polling()
-    updater.idle()
+    # No usamos idle() porque bloquearía el hilo principal
+    # El bot seguirá corriendo mientras el proceso esté vivo
 
 # Servidor mínimo para Render
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is running!")
+        self.wfile.write(b"Bot is running and alive!")
 
 def run_server():
     port = int(os.environ.get("PORT", 10000))
@@ -44,6 +46,6 @@ def run_server():
 
 if __name__ == "__main__":
     # Arranca el bot en un hilo separado
-    threading.Thread(target=run_bot).start()
+    threading.Thread(target=run_bot, daemon=True).start()
     # Arranca el servidor mínimo para Render
     run_server()
