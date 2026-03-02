@@ -20,7 +20,7 @@ def button(update, context):
     query = update.callback_query
     query.answer()
     if query.data == "hola":
-        query.edit_message_text(text="Hola mi vasto mundo")
+        query.edit_message_text(text="https://full-stack-z81t.onrender.com/")
 
 def run_bot():
     updater = Updater(TOKEN, use_context=True)
