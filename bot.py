@@ -1,7 +1,7 @@
 import os
 import threading
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOKEN = os.getenv("TOKEN")
@@ -11,26 +11,16 @@ if not TOKEN:
 
 # Función que se ejecuta con /start
 def start(update, context):
-    keyboard = [[InlineKeyboardButton("Presióname", callback_data="hola")]]
+    # Aquí el botón ya lleva directamente la URL
+    keyboard = [[InlineKeyboardButton("Presióname", url="https://full-stack-z81t.onrender.com/")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text("Pulsa el botón:", reply_markup=reply_markup)
-
-# Función que se ejecuta cuando se pulsa el botón
-def button(update, context):
-    query = update.callback_query
-    query.answer()
-    if query.data == "hola":
-        query.edit_message_text(text="https://full-stack-z81t.onrender.com/")
 
 def run_bot():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CallbackQueryHandler(button))
-    # start_polling ya mantiene el bot activo en segundo plano
     updater.start_polling()
-    # No usamos idle() porque bloquearía el hilo principal
-    # El bot seguirá corriendo mientras el proceso esté vivo
 
 # Servidor mínimo para Render
 class SimpleHandler(BaseHTTPRequestHandler):
@@ -45,7 +35,5 @@ def run_server():
     server.serve_forever()
 
 if __name__ == "__main__":
-    # Arranca el bot en un hilo separado
     threading.Thread(target=run_bot, daemon=True).start()
-    # Arranca el servidor mínimo para Render
     run_server()
