@@ -1,51 +1,49 @@
-import os
 import threading
 import time
 import requests
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import os
+from fastapi import FastAPI
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = os.getenv("TOKEN")
+# -------------------------------
+# FastAPI + self-ping
+# -------------------------------
+app = FastAPI()
 
-if not TOKEN:
-    raise ValueError("No se encontró el TOKEN en las variables de entorno.")
-
-# Función que se ejecuta con /start
-def start(update, context):
-    keyboard = [[InlineKeyboardButton("Presióname", url="https://full-stack-z81t.onrender.com/")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("Pulsa el botón:", reply_markup=reply_markup)
-
-def run_bot():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
-    updater.start_polling()
-
-# Servidor mínimo para Render
-class SimpleHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot is running and alive!")
-
-def run_server():
-    port = int(os.environ.get("PORT", 10000))
-    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
-    server.serve_forever()
-
-# Self-ping para evitar que Render duerma el servicio
 def keep_alive():
-    url = "https://full-stack-z81t.onrender.com/"
+    url = "https://full-stack-z81t.onrender.com/"  # tu URL pública en Render
+    if not url:
+        return
     while True:
         try:
             requests.get(url)
         except Exception as e:
-            print("Ping error:", e)
+            print("Error en self-ping:", e)
         time.sleep(600)  # cada 10 minutos
 
-if __name__ == "__main__":
-    threading.Thread(target=run_bot, daemon=True).start()
+@app.on_event("startup")
+async def startup_event():
     threading.Thread(target=keep_alive, daemon=True).start()
-    run_server()
+
+# -------------------------------
+# Telegram Bot
+# -------------------------------
+TOKEN = os.getenv("TOKEN")  # pon tu token en variable de entorno
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Abrir página", url="https://full-stack-z81t.onrender.com/")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Bienvenido, abre la página:", reply_markup=reply_markup)
+
+def run_bot():
+    application = Application.builder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.run_polling()
+
+# -------------------------------
+# Lanzar bot en hilo aparte
+# -------------------------------
+threading.Thread(target=run_bot, daemon=True).start()
