@@ -24,7 +24,7 @@ def keep_alive():
 TOKEN = os.getenv("TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("Abrir página", url="https://simple-button-bot.onrender.com/")]]
+    keyboard = [[InlineKeyboardButton("Abrir página", url="https://full-stack-z81t.onrender.com/")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Bienvenido, abre la página:", reply_markup=reply_markup)
 
