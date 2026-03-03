@@ -13,7 +13,7 @@ def root():
     return {"status": "ok"}
 
 def keep_alive():
-    url = "https://full-stack-z81t.onrender.com/"
+    url = "https://simple-button-bot.onrender.com/"
     while True:
         try:
             requests.get(url)
@@ -24,7 +24,7 @@ def keep_alive():
 TOKEN = os.getenv("TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("Abrir página", url="https://full-stack-z81t.onrender.com/")]]
+    keyboard = [[InlineKeyboardButton("Abrir página", url="https://simple-button-bot.onrender.com/")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Bienvenido, abre la página:", reply_markup=reply_markup)
 
@@ -37,5 +37,7 @@ async def startup_event():
     bot_app = Application.builder().token(TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
 
-    # Importante: usar la versión awaitable
-    asyncio.create_task(bot_app.run_polling(close_loop=False))
+    # Inicializar y arrancar el bot sin cerrar el loop de FastAPI
+    await bot_app.initialize()
+    await bot_app.start()
+    await bot_app.updater.start_polling()
